@@ -1,7 +1,28 @@
 ## DEFINE THE STRUCTURE AND BASIC TEMPLATING OF A LANGFILE HERE.
 
+# the template can either be a folder full of stuff or a simple string.
+# all folderpaths will be taken relative to the templating dir.
+class Template
+  attr_reader :is_folder, :template_string
+
+  def initialize
+    @is_folder = false
+    @template_string = ""
+  end
+
+  def self.from_folder(folder)
+    instance = new
+    @is_folder = true
+  end
+
+  def self.from_doc(text)
+    @template_string = text
+  end
+end
+
 # all the data that the formatting needs.
 # non language-specific data, don't impose this stuff directly on the Language object.
+# this is passed through upon GETTING the Language hook strings.
 class FormatStructure
     attr_reader :project_name, :source_dir, :full_name
 
@@ -23,22 +44,32 @@ end
 
 # the language structures are completely decoupled from the actual project creation filepaths.
 class Language 
-    attr_reader :name, :extension, :template, :compile_string, :run_string, :clean_string, :pre_build_string
+    attr_reader :name, :extension
+    # need to expose these so that the set_hook method can call them with send()?
+    attr_accessor :template, :compile, :run, :clean, :pre_build
 
-    def initialize(name, extension, template = "", compile_string = "", run_string = "", clean_string = "", pre_build_string = "")
+    # only thing that's necessary is the language template.
+    # pass in a Template object, not just a string. these can be folderpaths, too.
+    def initialize(name, extension, template, compile = "", run = "", clean = "", pre_build = "")
         @name = name
         @extension = extension
         @template = template
-        @compile_string = compile_string
-        @run_string = run_string
-        @clean_string = clean_string
-        @pre_build_string = pre_build_string
+        @compile = compile
+        @run = run
+        @clean = clean
+        @pre_build = pre_build
         return self
     end
 
     # place all the weird template formatting in this function.
     def format_str(string, format_structure)
         formatted_string = string
+
+        # replace all the template strings with the actual values.
+        formatted_string.gsub!("<project_name>", format_structure.project_name)
+        formatted_string.gsub!("<source_dir>", format_structure.source_dir)
+        formatted_string.gsub!("<full_name>", format_structure.full_name)
+
         return formatted_string
     end
 
@@ -60,7 +91,7 @@ class Language
     # make the hook a proper string.
     # is_function is a boolean that determines whether or not the hook is a function hook or just a simple string arg.
     # formats differently depending on whether or not it's a function.
-    def format_hook(string, format_structure, is_function)
+    def format_hook(string, format_structure)
         # tab the code in one.
         def normalize_indentation(code_string)
             # Split the code into lines
@@ -81,29 +112,22 @@ class Language
             normalized_code_string
         end
 
-        if is_function
-            # trim the function sig
-            lines = string.lines
-            lines.shift
-            lines.pop
-
-            string = lines.join
-
-            # clean up the weird tabs and spaces errors we might get in the scripts.
-            string = normalize_indentation(string)
-        end
-
         # place all of the usual formatting onto the string.
         string = format_str(string, format_structure)
 
         return string
     end
 
-    ## setters for the lang hooks.
-    def set_hook_string(which_hook, string, format_structure, is_function = false)
-        string = format_hook(string, format_structure, is_function)
-        # set the method with a message call at runtime.
+    # setter for any lang hook.
+    def set_hook(which_hook, string)
         send("#{which_hook}=", string)
         return self
+    end
+
+    # getter for any lang hook.
+    # pass in the structure to format it properly, and get back the right code.
+    # the data for the formatter is decided by the caller, this class should only be concerned with formatting.
+    def get_hook(which_hook, format_structure)
+        return format_hook(send(which_hook), format_structure)
     end
 end

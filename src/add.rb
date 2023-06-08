@@ -64,5 +64,6 @@ def add(language, fn_name)
     end
     puts "Done."
 
-    system "code #{project_dir}"
+    puts "Opening the project directory in your $EDITOR..."
+    exec "$EDITOR #{project_dir}"
 end

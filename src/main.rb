@@ -5,6 +5,7 @@ require 'fileutils'
 require_relative 'add.rb'
 require_relative 'build.rb'
 require_relative 'defines.rb'
+require_relative 'install.rb'
 
 def init
     # make sure all the stuff exists.
@@ -26,7 +27,8 @@ def main
 
     init
 
-    if ARGV.include?("add")
+    case ARGV[0]
+    when 'add'
         # add a function with the specified language and function name.
         _, language, fn_name = ARGV
 
@@ -41,10 +43,7 @@ def main
         end
 
         add(language, fn_name)
-    end
-
-    # function source is included with the bundle, so the user can see the source and build off it, or just use it as is.
-    if ARGV.include?("build")
+    when 'build'
         # build the function with the specified name.
         _, fn_name = ARGV
 
@@ -54,6 +53,11 @@ def main
         end
 
         build(fn_name)
+        exit
+    when 'install'
+      install
+    else
+      help
     end
 end
 

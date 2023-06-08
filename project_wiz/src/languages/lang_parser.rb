@@ -75,20 +75,19 @@ def get_languages()
 
     languages = []
 
-    # Iterate over each file in the directory
-    Dir.foreach(current_directory) do |filename|
-        next if filename == '.' || filename == '..'
+    # # Iterate over each file in the directory
+    # Dir.foreach(current_directory) do |filename|
+    #     next if filename == '.' || filename == '..'
 
-        # Construct the full path to the file
-        file_path = File.join(current_directory, filename)
+    #     # Construct the full path to the file
+    #     file_path = File.join(current_directory, filename)
 
-        l = define_lang_from_file(file_path)
-        if l != nil
-            languages.append(l)
-        end
-    end
+    #     l = define_lang_from_file(file_path)
+    #     if l != nil
+    #         languages.append(l)
+    #     end
+    # end
 
-    $cached_languages = languages
-
-    return SIMPLE_LANG_DEFINES + languages
+    $cached_languages = SIMPLE_LANG_DEFINES + languages
+    return $cached_languages
 end

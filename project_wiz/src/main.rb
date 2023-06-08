@@ -4,6 +4,7 @@ require 'fileutils'
 require 'bash_help'
 
 require_relative 'languages/languages.rb'
+require_relative 'languages/lang_structure.rb'
 require_relative 'templates.rb'
 
 IS_STANDALONE = __FILE__ == $0
@@ -56,9 +57,15 @@ def project_wizard(language, project_name, base_directory=File.join(ENV['HOME'],
 
     line
 
+    format_struct = FormatStructure.new(
+      project_name,
+      source_directory,
+      file_path,
+    )
+
     puts "Creating build.rb file..."
     File.open(build_file_path, 'w') do |f|
-        f.write(make_build_string(lang_obj, project_name))
+        f.write(make_build_string(lang_obj, format_struct))
     end
     puts "Created build.rb file."
 
@@ -66,7 +73,7 @@ def project_wizard(language, project_name, base_directory=File.join(ENV['HOME'],
 
     puts "Creating run.rb file..."
     File.open(run_file_path, 'w') do |f|
-        f.write(RUN_TEMPLATE)
+        f.write(make_run_string(lang_obj, format_struct))
     end
     puts "Created run.rb file."
 
@@ -74,7 +81,7 @@ def project_wizard(language, project_name, base_directory=File.join(ENV['HOME'],
 
     puts "Creating install.rb file..."
     File.open(install_file_path, 'w') do |f|
-        f.write(make_install_string(language, project_name))
+        f.write(make_install_string(lang_obj, format_struct))
     end
     puts "Created install.rb file."
 

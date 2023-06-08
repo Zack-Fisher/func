@@ -3,10 +3,20 @@ require_relative 'lang_structure.rb'
 # can optionally define langs here instead of in their own files, if all the stuff is really small and it's not warranted.
 # this will be appended onto all the defs from the langfiles dir.
 SIMPLE_LANG_DEFINES = [
-#     Language.new('python', '.py', 
-#         "print('Hello, World!')",
-#     )
-#         .set_run_string("system(\"python3 <full_name>.py #{ARGSTRING}\")"),
+    Language.new('python', '.py', 
+                 # use heredoc to inline stuff, optionally.
+                 Template.from_doc(
+                 <<-PYTHON
+print("Hello, World!")
+PYTHON
+                 )
+    )
+        # set all the hooks for running and compiling the program.
+        # these will be automatically injected into the project at the right places.
+        .set_hook(
+          "run",
+          "system(\"python3 <full_name> #{ARGSTRING}\")"
+        ),
 
 #     Language.new('javascript', '.js',
 #         "console.log('Hello, World!');"
